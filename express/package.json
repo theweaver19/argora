@@ -1,0 +1,30 @@
+{
+  "name": "argorareact",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/index.js"
+  },
+  "author": "Ardee Aram",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "body-parser": "^1.19.0",
+    "cookie-parser": "^1.4.5",
+    "cors": "^2.8.5",
+    "dotenv": "^10.0.0",
+    "es6-promisify": "^6.1.1",
+    "express": "^4.17.1",
+    "express-session": "^1.17.1",
+    "morgan": "^1.10.0",
+    "oauth": "^0.9.15",
+    "querystring": "^0.2.0",
+    "serverless-http": "^2.7.0",
+    "util": "^0.12.3"
+  },
+  "devDependencies": {
+    "netlify-lambda": "^2.0.3"
+  }
+}
