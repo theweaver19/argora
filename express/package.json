@@ -10,7 +10,8 @@
   "author": "Ardee Aram",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.21.1",
+    "arweave": "^1.10.18",
+    "axios": "^0.23.0",
     "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
@@ -18,10 +19,16 @@
     "es6-promisify": "^6.1.1",
     "express": "^4.17.1",
     "express-session": "^1.17.1",
+    "graphql": "^15.6.1",
+    "graphql-request": "^3.6.1",
+    "knex": "^0.95.11",
     "morgan": "^1.10.0",
+    "node-cron": "^3.0.0",
     "oauth": "^0.9.15",
+    "path": "^0.12.7",
+    "pg": "^8.7.1",
     "querystring": "^0.2.0",
-    "serverless-http": "^2.7.0",
+    "twitter-text": "^3.1.0",
     "util": "^0.12.3"
   },
   "devDependencies": {
