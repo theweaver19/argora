@@ -13,6 +13,7 @@ const OAUTH_COOKIE = "oauth_token";
 const USER_COOKIE = "user_cookie";
 const Arweave = require("arweave");
 const path = require("path");
+const { encrypt } = require("./crypto");
 
 const arweave = Arweave.init({
   host: "arweave.net",
@@ -83,13 +84,18 @@ router.post("/twitter/oauth/access_token", async (req, res) => {
     let userInfo = await db.fetchUserInfoByTwitterID(twitterUserData.id_str);
 
     if (userInfo === undefined) {
+      let encAccessToken = encrypt(oauth_access_token);
+      let encTokenSecret = encrypt(oauth_access_token_secret);
+
       userInfo = await db.createNewUser({
         twitter_id: twitterUserData.id_str,
         twitter_handle: twitterUserData.screen_name,
         photo_url: twitterUserData.profile_image_url_https,
         is_subscribed: false,
-        oauth_access_token,
-        oauth_secret_token: oauth_access_token_secret,
+        oauth_access_token: encAccessToken.content,
+        oauth_access_token_iv: encAccessToken.iv,
+        oauth_secret_token: encTokenSecret.content,
+        oauth_secret_token_iv: encTokenSecret.iv,
       });
     }
 
@@ -139,8 +145,6 @@ router.post("/twitter/subscribe", async (req, res) => {
     const user = getCookie(req, USER_COOKIE);
 
     let parsedTx = arweave.transactions.fromRaw(JSON.parse(data.tx));
-    console.log(Arweave.utils.bufferToString(parsedTx.data));
-    console.log(user);
     if (
       Arweave.utils.bufferToString(parsedTx.data) !==
       `{twitter_id: ${user.twitter_id}}`
@@ -208,15 +212,15 @@ router.post("/twitter/logout", async (req, res) => {
   }
 });
 
+app.use("/api", router);
+
 // Serve static files from the React app
 app.use(express.static(path.join(__dirname, "../../react/build")));
 
 app.get("*", (req, res) => {
-  console.log(path);
+  console.log("in catchall");
   res.sendFile(path.join(__dirname + "/../../react/build/index.html"));
 });
-
-app.use("/api", router);
 
 argoraCron.start();
 

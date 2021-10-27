@@ -6,6 +6,7 @@ const graphql = require("graphql-request");
 require("dotenv").config();
 const oauthCallback = process.env.FRONTEND_URL;
 const oauth = require("./lib/oauth-promise")(oauthCallback);
+const { decrypt } = require("./crypto");
 
 function formatToTwitter(message) {
   let splitMsg = message.match(/[\s\S]{1,274}/g);
@@ -90,12 +91,20 @@ module.exports = {
 
               console.debug("uploading message", message);
 
-              // TODO we need to break up the message into possibly many tweets!
+              let oauthAccessToken = decrypt(
+                sub.oauth_access_token,
+                sub.oauth_access_token_iv
+              );
+              let oauthSecretToken = decrypt(
+                sub.oauth_secret_token,
+                sub.oauth_secret_token_iv
+              );
+
               let twitterRes = await postToTwitter(
                 message,
                 txID,
-                sub.oauth_access_token,
-                sub.oauth_secret_token
+                oauthAccessToken,
+                oauthSecretToken
               );
               console.debug("uploaded to twitter", message);
 

@@ -6,7 +6,9 @@ exports.up = function (knex) {
       table.string("arweave_address", 255);
       table.text("photo_url", 255);
       table.text("oauth_access_token");
+      table.text("oauth_access_token_iv");
       table.text("oauth_secret_token");
+      table.text("oauth_secret_token_iv");
       table.boolean("is_subscribed");
       table.timestamps(true, true);
       table.unique(["twitter_id", "arweave_address"], {
