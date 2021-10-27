@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
@@ -5,8 +6,7 @@ const morgan = require("morgan");
 const argoraCron = require("./cron");
 const db = require("./db");
 const app = express();
-const port = 3000;
-require("dotenv").config();
+const port = process.env.PORT || 3000;
 const oauthCallback = process.env.FRONTEND_URL;
 const oauth = require("./lib/oauth-promise")(oauthCallback);
 const OAUTH_COOKIE = "oauth_token";
