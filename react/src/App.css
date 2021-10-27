@@ -1,6 +1,6 @@
 .App {
   text-align: center;
-  background-color: #3a6cd1;
+  background-color: #040505;
 
 }
 
@@ -21,7 +21,7 @@
   min-height: 5vh;
   display: flex;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+  /* font-size: calc(10px + 2vmin); */
   color: white;
 }
 
@@ -31,7 +31,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+  /* font-size: calc(10px + 2vmin); */
   color: white;
 }
 
@@ -69,7 +69,52 @@
   line-height: 1.5;
   border-radius: .25rem;
   color: #fff;
+  background-color: rgb(221, 15, 15);
+  border-color: rgb(221, 15, 15);
+  cursor: pointer;
+}
+
+.unsubscribe-btn {
+  margin: 10px;  
+  display: inline-block;
+  font-weight: 400;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  border: 1px solid transparent;
+  padding: .375rem .75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  border-radius: .25rem;
+  color: #fff;
+  background-color: rgb(221, 15, 15);
+  border-color: rgb(221, 15, 15);
+  cursor: pointer;
+}
+
+.subscribe-btn {
+  margin: 10px;  
+  display: inline-block;
+  font-weight: 400;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  border: 1px solid transparent;
+  padding: .375rem .75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  border-radius: .25rem;
+  color: #fff;
   background-color: #007bff;
   border-color: #007bff;
   cursor: pointer;
 }
+

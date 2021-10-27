@@ -69,6 +69,7 @@ function App() {
           setIsSubscribed(data.is_subscribed);
 
           localStorage.setItem("isLoggedIn", "true");
+          window.location.search = "";
         } catch (error) {
           console.error(error);
         }
@@ -148,6 +149,8 @@ function App() {
           data: { tx: JSON.stringify(tx) },
         });
         setIsSubscribed(res.data.subscribed);
+
+        await refreshUser();
       } catch (error) {
         console.error(error);
       }
@@ -189,34 +192,40 @@ function App() {
               <img alt="User profile" src={imageUrl} />
             </div>
             <div>Hello {name}!</div>
+            <div>
+              {isSubscribed ? (
+                <button className="unsubscribe-btn" onClick={unsubscribe}>
+                  Unsubscribe
+                </button>
+              ) : (
+                <div>
+                  Click the below subscribe button. This will create and sign a
+                  transaction with your current twitter ID in the data field.
+                  <br /> We do not send that transaction over to the network, we
+                  just verify the signature to know that you hold this account.
+                  <br />
+                  If using Arconnect, tx charges may apply.
+                  <br />
+                  <button className="subscribe-btn" onClick={subscribe}>
+                    Subscribe
+                  </button>
+                </div>
+              )}
+
+              <div>
+                {isSubscribed &&
+                  `Your twitter account is subscribed to the bridge, your Argora messages from address ${userInfo.arweave_address} (not replies) will be tweeted out automatically to your twitter account.`}
+              </div>
+            </div>
             <button className="signout-btn" onClick={logout}>
               Sign Out
             </button>
           </div>
         )}
 
-        {isLoggedIn && (
-          <div>
-            {isSubscribed ? (
-              <button className="signout-btn" onClick={unsubscribe}>
-                Unsubscribe
-              </button>
-            ) : (
-              <button className="signout-btn" onClick={subscribe}>
-                Subscribe
-              </button>
-            )}
-
-            <div>
-              {isSubscribed &&
-                `Your twitter account is subscribed to the bridge, your Argora messages from address ${userInfo.arweave_address} (not replies) will be tweeted out automatically to your twitter account.`}
-            </div>
-          </div>
-        )}
-
-        {isLoggedIn && (
-          <div>Your current Arweave address is: {argoraAddress}</div>
-        )}
+        {/* {isLoggedIn && (
+          // <div>Your current Arweave address is: {argoraAddress}</div>
+        )} */}
       </div>
     </div>
   );
