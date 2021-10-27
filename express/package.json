@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "heroku-postbuild": "cd react && yarn && yarn run build"
   },
-  "author": "Ardee Aram",
   "license": "ISC",
   "dependencies": {
     "arweave": "^1.10.18",
