@@ -123,12 +123,12 @@ function App() {
   const logout = () => {
     (async () => {
       try {
+        localStorage.clear();
         await axios({
           url: `${apiPath}/twitter/logout`,
           method: "POST",
         });
         setIsLoggedIn(false);
-        localStorage.clear();
       } catch (error) {
         console.error(error);
       }
