@@ -13,36 +13,39 @@ const arweave = Arweave.init({
 
 const apiPath = "/api";
 
+const permissions = [
+  "ACCESS_ADDRESS",
+  "ACCESS_ALL_ADDRESSES",
+  "ACCESS_PUBLIC_KEY",
+  "SIGNATURE",
+  "SIGN_TRANSACTION",
+];
+
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(
-    localStorage.getItem("isLoggedIn") === "true"
+    +localStorage.getItem("expiry") > Date.now()
   );
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [name, setName] = useState();
   const [imageUrl, setImageUrl] = useState();
-  const [argoraAddress, setArgoraAddress] = useState("");
+  const [currentArconnectAddress, setCurrentArconnectAddress] = useState("");
   const [userInfo, setUserInfo] = useState({});
+  const [isSubscribing, setIsSubscribing] = useState(false);
 
   useEffect(() => {
     window.addEventListener("arweaveWalletLoaded", () => {
-      /** Handle ArConnect load event **/
-
-      window.arweaveWallet.connect([
-        "ACCESS_ADDRESS",
-        "ACCESS_ALL_ADDRESSES",
-        "ACCESS_PUBLIC_KEY",
-        "SIGNATURE",
-        "SIGN_TRANSACTION",
-      ]);
-
-      window.arweaveWallet.getActiveAddress().then((a) => {
-        setArgoraAddress(a);
+      window.addEventListener("walletSwitch", (e) => {
+        const newAddress = e.detail.address;
+        setCurrentArconnectAddress(newAddress);
       });
-    });
 
-    window.addEventListener("walletSwitch", (e) => {
-      const newAddress = e.detail.address;
-      setArgoraAddress(newAddress);
+      window.arweaveWallet.getPermissions().then((a) => {
+        if (a.includes("ACCESS_ADDRESS")) {
+          window.arweaveWallet.getActiveAddress().then((address) => {
+            setCurrentArconnectAddress(address);
+          });
+        }
+      });
     });
   }, []);
 
@@ -63,12 +66,12 @@ function App() {
           let data = res.data;
 
           setIsLoggedIn(true);
+          localStorage.setItem("expiry", data.expiry);
           setName(data.twitter_handle);
           setImageUrl(data.photo_url);
           setUserInfo(data);
           setIsSubscribed(data.is_subscribed);
 
-          localStorage.setItem("isLoggedIn", "true");
           window.location.search = "";
         } catch (error) {
           console.error(error);
@@ -93,7 +96,7 @@ function App() {
   useEffect(() => {
     (async () => {
       try {
-        if (localStorage.getItem("isLoggedIn") === "true") {
+        if (isLoggedIn) {
           await refreshUser();
         }
       } catch (error) {
@@ -124,11 +127,11 @@ function App() {
     (async () => {
       try {
         localStorage.clear();
+        setIsLoggedIn(false);
         await axios({
           url: `${apiPath}/twitter/logout`,
           method: "POST",
         });
-        setIsLoggedIn(false);
       } catch (error) {
         console.error(error);
       }
@@ -137,6 +140,7 @@ function App() {
 
   const subscribe = () => {
     (async () => {
+      setIsSubscribing(true);
       try {
         let tx = await arweave.createTransaction({
           data: Buffer.from(`{twitter_id: ${userInfo.twitter_id}}`, "utf8"),
@@ -151,8 +155,10 @@ function App() {
         setIsSubscribed(res.data.subscribed);
 
         await refreshUser();
+        setIsSubscribing(false);
       } catch (error) {
         console.error(error);
+        setIsSubscribing(false);
       }
     })();
   };
@@ -170,28 +176,101 @@ function App() {
     }
   };
 
+  const arconnectLogin = async () => {
+    window.arweaveWallet.connect(permissions).then(() => {
+      window.arweaveWallet.getActiveAddress().then((a) => {
+        setCurrentArconnectAddress(a);
+      });
+    });
+  };
+
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
+        <div
+          style={{
+            display: "flex",
+            width: "100%",
+            alignContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <p
+            style={{
+              marginLeft: "20px",
+            }}
+          >
+            <img src={logo} className="App-logo" alt="logo" /> Bridge
+          </p>
+          <p style={{ marginLeft: "auto" }}>
+            {isLoggedIn && (
+              <button className="signout-btn" onClick={logout}>
+                Sign Out
+              </button>
+            )}
+          </p>
+        </div>
       </header>
 
       <div className="main-app">
-        {!isLoggedIn && (
-          <img
-            className="signin-btn"
-            onClick={login}
-            alt="Twitter login button"
-            src="https://assets.klaudsol.com/twitter.png"
-          />
-        )}
-
         {isLoggedIn && (
           <div>
             <div>
               <img alt="User profile" src={imageUrl} />
             </div>
             <div>Hello {name}!</div>
+            <br />
+            <br />
+          </div>
+        )}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            marginBottom: "20px",
+          }}
+        >
+          <div style={{ marginRight: "10px" }}>Step 1:</div>
+          <div>
+            {isLoggedIn ? (
+              <div>✅</div>
+            ) : (
+              <div>
+                <img
+                  className="signin-btn"
+                  onClick={login}
+                  alt="Twitter login button"
+                  src="https://assets.klaudsol.com/twitter.png"
+                />
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              marginBottom: "20px",
+            }}
+          >
+            <div style={{ marginRight: "10px" }}>Step 2:</div>
+            {currentArconnectAddress !== "" ? (
+              <div>✅</div>
+            ) : (
+              <button className="signout-btn" onClick={arconnectLogin}>
+                Connect to Arconnect
+              </button>
+            )}
+          </div>
+        </div>
+        {currentArconnectAddress !== "" && (
+          <div>Your current Arconnect Address is {currentArconnectAddress}</div>
+        )}
+
+        {isLoggedIn && (
+          <div>
             <div>
               {isSubscribed ? (
                 <button className="unsubscribe-btn" onClick={unsubscribe}>
@@ -199,33 +278,46 @@ function App() {
                 </button>
               ) : (
                 <div>
-                  Click the below subscribe button. This will create and sign a
-                  transaction with your current twitter ID in the data field.
+                  Step 3:
+                  <button
+                    className="subscribe-btn"
+                    onClick={subscribe}
+                    disabled={isSubscribing}
+                  >
+                    Subscribe to the bridge
+                  </button>
+                  <br />
+                  This will create and sign a transaction with your current
+                  twitter ID in the data field.
                   <br /> We do not send that transaction over to the network, we
                   just verify the signature to know that you hold this account.
                   <br />
                   If using Arconnect, tx charges may apply.
                   <br />
-                  <button className="subscribe-btn" onClick={subscribe}>
-                    Subscribe
-                  </button>
                 </div>
               )}
 
               <div>
-                {isSubscribed &&
-                  `Your twitter account is subscribed to the bridge, your Argora messages from address ${userInfo.arweave_address} (not replies) will be tweeted out automatically to your twitter account.`}
+                <br />
+                <br />
+                {isSubscribed && (
+                  <div
+                    style={{
+                      backgroundColor: "green",
+                      borderRadius: "5px",
+                      padding: "10px",
+                    }}
+                  >
+                    Congratulations! Your twitter account is subscribed to the
+                    bridge, your Argora messages from {userInfo.arweave_address}{" "}
+                    (not replies) will be tweeted out automatically to your
+                    twitter account.
+                  </div>
+                )}
               </div>
             </div>
-            <button className="signout-btn" onClick={logout}>
-              Sign Out
-            </button>
           </div>
         )}
-
-        {/* {isLoggedIn && (
-          // <div>Your current Arweave address is: {argoraAddress}</div>
-        )} */}
       </div>
     </div>
   );

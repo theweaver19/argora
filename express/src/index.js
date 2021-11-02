@@ -22,13 +22,13 @@ const arweave = Arweave.init({
 });
 
 app.use(bodyParser.json());
-app.use(cookieParser());
+app.use(cookieParser(process.env.COOKIE_SECRET));
 app.use(morgan("combined"));
 
 const router = express.Router();
 
 function getCookie(req, cookieName) {
-  let cookies = req.cookies[cookieName];
+  let cookies = req.signedCookies[cookieName];
   if (Array.isArray(cookies)) {
     return cookies[0];
   } else return cookies;
@@ -49,6 +49,7 @@ router.post("/twitter/oauth/request_token", async (req, res) => {
       secure: true,
       httpOnly: true,
       sameSite: true,
+      signed: true,
     });
 
     res.json({ oauth_token });
@@ -62,7 +63,7 @@ router.post("/twitter/oauth/request_token", async (req, res) => {
 router.post("/twitter/oauth/access_token", async (req, res) => {
   try {
     const { oauth_token: req_oauth_token, oauth_verifier } = req.body;
-    const oauth_token = req.cookies[OAUTH_COOKIE];
+    const oauth_token = req.signedCookies[OAUTH_COOKIE];
 
     if (oauth_token !== req_oauth_token) {
       res.status(403).json({ message: "Request tokens do not match" });
@@ -82,11 +83,10 @@ router.post("/twitter/oauth/access_token", async (req, res) => {
     let twitterUserData = JSON.parse(response.data);
 
     let userInfo = await db.fetchUserInfoByTwitterID(twitterUserData.id_str);
+    let encAccessToken = encrypt(oauth_access_token);
+    let encTokenSecret = encrypt(oauth_access_token_secret);
 
     if (userInfo === undefined) {
-      let encAccessToken = encrypt(oauth_access_token);
-      let encTokenSecret = encrypt(oauth_access_token_secret);
-
       userInfo = await db.createNewUser({
         twitter_id: twitterUserData.id_str,
         twitter_handle: twitterUserData.screen_name,
@@ -97,13 +97,20 @@ router.post("/twitter/oauth/access_token", async (req, res) => {
         oauth_secret_token: encTokenSecret.content,
         oauth_secret_token_iv: encTokenSecret.iv,
       });
+    } else {
+      userInfo.oauth_access_token = encAccessToken.content;
+      userInfo.oauth_access_token_iv = encAccessToken.iv;
+      userInfo.oauth_secret_token = encTokenSecret.content;
+      userInfo.oauth_secret_token_iv = encTokenSecret.iv;
+      await db.updateUserInfo(userInfo);
     }
 
     res.cookie(USER_COOKIE, userInfo, {
-      maxAge: 15 * 60 * 1000, // 15 minutes
+      maxAge: 8 * 60 * 60 * 1000, // 8 hours
       secure: true,
       httpOnly: true,
       sameSite: true,
+      signed: true,
     });
 
     res.status(200).json({
@@ -112,6 +119,7 @@ router.post("/twitter/oauth/access_token", async (req, res) => {
       arweave_address: userInfo.arweave_address,
       is_subscribed: userInfo.is_subscribed,
       photo_url: userInfo.photo_url,
+      expiry: Date.now() + 8 * 60 * 60 * 1000,
     });
   } catch (error) {
     console.error(error);
@@ -182,10 +190,11 @@ router.post("/twitter/unsubscribe", async (req, res) => {
 
     await db.updateUserInfo(user);
     res.cookie(USER_COOKIE, user, {
-      maxAge: 15 * 60 * 1000, // 15 minutes
+      maxAge: 8 * 60 * 60 * 1000, // 8 hours
       secure: true,
       httpOnly: true,
       sameSite: true,
+      signed: true,
     });
 
     res.json({ subscribed: false });
@@ -218,7 +227,6 @@ app.use("/api", router);
 app.use(express.static(path.join(__dirname, "../../react/build")));
 
 app.get("*", (req, res) => {
-  console.log("in catchall");
   res.sendFile(path.join(__dirname + "/../../react/build/index.html"));
 });
 

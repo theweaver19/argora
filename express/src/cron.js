@@ -63,8 +63,8 @@ async function postToTwitter(
 module.exports = {
   start: () => {
     // Schedule tasks to be run on the server.
-    cron.schedule("* * * * *", async function () {
-      console.log("running a task every minute");
+    cron.schedule(process.env.CRON_SCHEDULE, async function () {
+      console.log("running Argora to Twitter task");
 
       // for every subscribed user we
       let subscribers = await db.fetchAllSubscribedUsers();
