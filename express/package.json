@@ -13,6 +13,7 @@
     "arweave": "^1.10.18",
     "axios": "^0.23.0",
     "body-parser": "^1.19.0",
+    "codebird": "^2.6.0",
     "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
@@ -30,7 +31,8 @@
     "pg": "^8.7.1",
     "querystring": "^0.2.0",
     "twitter-text": "^3.1.0",
-    "util": "^0.12.3"
+    "util": "^0.12.3",
+    "xhr2": "^0.2.1"
   },
   "devDependencies": {
     "netlify-lambda": "^2.0.3"

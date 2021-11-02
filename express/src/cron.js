@@ -1,5 +1,5 @@
 const cron = require("node-cron");
-let arweaveHelper = require("./arweave_helper");
+const arweaveHelper = require("./arweave_helper");
 const axios = require("axios").default;
 const db = require("./db");
 const graphql = require("graphql-request");
@@ -7,6 +7,10 @@ require("dotenv").config();
 const oauthCallback = process.env.FRONTEND_URL;
 const oauth = require("./lib/oauth-promise")(oauthCallback);
 const { decrypt } = require("./crypto");
+const Codebird = require("codebird");
+
+var cb = new Codebird();
+cb.setConsumerKey(process.env.CONSUMER_KEY, process.env.CONSUMER_SECRET);
 
 function formatToTwitter(message) {
   let splitMsg = message.match(/[\s\S]{1,274}/g);
@@ -23,12 +27,42 @@ function formatToTwitter(message) {
   return tweets;
 }
 
+function uploadMedia(cb, params) {
+  return new Promise((resolve, reject) => {
+    cb.__call("media_upload", params, function (reply, rate, err) {
+      if (err !== undefined) {
+        reject(err);
+      }
+      resolve(reply);
+    });
+  });
+}
+
 async function postToTwitter(
   message,
+  pictures,
   arweaveTxID,
   oauth_access_token,
   oauth_access_token_secret
 ) {
+  cb.setToken(oauth_access_token, oauth_access_token_secret);
+  let mediaIDs = [];
+  for (picTxID of pictures) {
+    // we fetch from arweave
+    let img = await axios.get(arweaveHelper.ARWEAVE_GATEWAY + "/" + picTxID, {
+      responseType: "arraybuffer",
+    });
+
+    var params = {
+      media_data: Buffer.from(img.data, "binary").toString("base64"),
+      media_category: "tweet_image",
+    };
+
+    let reply = await uploadMedia(cb, params);
+
+    mediaIDs.push(reply.media_id_string);
+  }
+
   let tweets = formatToTwitter(message);
 
   tweets.push(
@@ -39,12 +73,19 @@ async function postToTwitter(
   let lastTweetID = "";
   let firstTweetID = "";
   for (const status of tweets) {
+    let mediaIdsJoined = "";
+    if (firstTweetID === "") {
+      mediaIdsJoined = mediaIDs.join(",");
+    } else {
+      mediaIdsJoined = "";
+    }
     const response = await oauth.postProtectedResource(
       `https://api.twitter.com/1.1/statuses/update.json`,
       {
         status: status,
         in_reply_to_status_id: lastTweetID,
         auto_populate_reply_metadata: true,
+        media_ids: mediaIdsJoined,
       },
       oauth_access_token,
       oauth_access_token_secret
@@ -88,6 +129,8 @@ module.exports = {
               );
 
               let message = newRes.data.text;
+              let pictures =
+                newRes.data.pictures === undefined ? [] : newRes.data.pictures;
 
               console.debug("uploading message", message);
 
@@ -99,9 +142,9 @@ module.exports = {
                 sub.oauth_secret_token,
                 sub.oauth_secret_token_iv
               );
-
               let twitterRes = await postToTwitter(
                 message,
+                pictures,
                 txID,
                 oauthAccessToken,
                 oauthSecretToken
