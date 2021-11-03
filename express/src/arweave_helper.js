@@ -9,6 +9,7 @@ module.exports = {
       tags: [
         { name: "App-Name", values: ["argora"] }
         { name: "reply-to", values: ["world", "profile"] }
+        { name: "App-Version", values: ["1.0", "1.1"] }
       ]
       owners: ${JSON.stringify(addresses)}
     ) {
