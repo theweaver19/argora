@@ -2,7 +2,7 @@ const gql = require("graphql-request").gql;
 
 module.exports = {
   // for now we only post reply-to to anyone
-  argoraQuery: (addresses) => gql`
+  argoraQuery: (addresses, minBlockHeight) => gql`
   query {
     transactions(
       sort: HEIGHT_DESC
@@ -11,6 +11,7 @@ module.exports = {
         { name: "reply-to", values: ["world", "profile"] }
         { name: "App-Version", values: ["1.0", "1.1"] }
       ]
+      block: {min: ${minBlockHeight}, max: 1000000000}
       owners: ${JSON.stringify(addresses)}
     ) {
       edges {

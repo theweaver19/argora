@@ -115,7 +115,10 @@ module.exports = {
           // fetch the latest argora messages
           let res = await graphql.request(
             arweaveHelper.ARWEAVE_GQL_ENDPOINT,
-            arweaveHelper.argoraQuery([sub.arweave_address])
+            arweaveHelper.argoraQuery(
+              [sub.arweave_address],
+              sub.from_block_height
+            )
           );
 
           // we reverse the array to start with the older message first

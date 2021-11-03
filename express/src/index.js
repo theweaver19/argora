@@ -170,8 +170,11 @@ router.post("/twitter/subscribe", async (req, res) => {
 
     let address = await arweave.wallets.ownerToAddress(parsedTx.owner);
 
+    const blockHeight = (await arweave.blocks.getCurrent()).height;
+
     user.arweave_address = address;
     user.is_subscribed = true;
+    user.from_block_height = blockHeight;
 
     await db.updateUserInfo(user);
 
@@ -187,6 +190,8 @@ router.post("/twitter/unsubscribe", async (req, res) => {
     const user = getCookie(req, USER_COOKIE);
 
     user.is_subscribed = false;
+    user.from_block_height = 0;
+    user.arweave_address = "";
 
     await db.updateUserInfo(user);
     res.cookie(USER_COOKIE, user, {
