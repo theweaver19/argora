@@ -129,6 +129,10 @@ module.exports = {
               );
 
               let message = newRes.data.text;
+
+              if (message === undefined) {
+                continue;
+              }
               let pictures =
                 newRes.data.pictures === undefined ? [] : newRes.data.pictures;
 
