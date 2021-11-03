@@ -66,7 +66,7 @@ async function postToTwitter(
   let tweets = formatToTwitter(message);
 
   tweets.push(
-    "Tweet originally pubished on @ArgoraTeam at https://arweave.net/MHCq_KwBflnpMkZQA6z3B7izxWyoArT2aE4c8VcpnDQ/thread/" +
+    "Tweet originally published on @ArgoraTeam at https://arweave.net/MHCq_KwBflnpMkZQA6z3B7izxWyoArT2aE4c8VcpnDQ/thread/" +
       arweaveTxID
   );
 
