@@ -20,10 +20,14 @@ To run in development, you will have to
 
 4) Run the backend server `cd express && yarn start`, it will run the server on port 3000.
 
-5) Head over to the Ngrok URL and the frontend will show up.
+5) On the Twitter developer page, go to your Project > Authentication Settings > Edit. Under `Callback URL` and `Website URL` add the Ngrok URL.
+
+6) Head over to the Ngrok URL and the frontend will show up.
 
 ## Deploy to production
 
 To deploy to production, make sure that at some point in the deployment, you run `cd react && yarn build` to get a built out optimized frontend code. The express server will then fetch the react code from the build server and send it to the requester.
 
 An example of a heroku build process can be seen in the main `package.json` in the folder root.
+
+Don't forget to change the Twitter Developer Project Callback and Website URL with the one of your bridge!
